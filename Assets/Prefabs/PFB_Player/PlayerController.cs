@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviour
     private KeyCode JUMP = KeyCode.Space;
 
 
+    
+
     //Control Booleans
     private bool left = false;
     private bool right = false;
@@ -19,21 +21,25 @@ public class PlayerController : MonoBehaviour
 
     //Movement Variables
     private Rigidbody2D rb;
-    private float SPEED = 1;
+    private float SPEED = 2;
     private float JUMPHEIGHT = 10;
     private Collider2D boxCollider;
     private float GROUNDEDOFFSET = 0.1f;
-    bool grounded = true;
+    public bool grounded = true;
     bool jumpCooldown = false;
 
     //Attacking Variables
     bool attacking = false;
 
+
+    //Animator
+    Animator animator;
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        boxCollider = GetComponent<BoxCollider2D>();
+        boxCollider = GetComponent<CapsuleCollider2D>();
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -42,7 +48,15 @@ public class PlayerController : MonoBehaviour
         #region Control Booleans
         if (Input.GetKeyDown(LEFT))
         {
-            left = true;
+            if (attacking)
+            {
+                Slice();
+            }
+            else
+            {
+                animator.SetInteger("AnimState", 1);
+                left = true;
+            }
         }
         if (Input.GetKeyUp(LEFT))
         {
@@ -51,7 +65,14 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(RIGHT))
         {
-            right = true;
+            if (attacking)
+            {
+                Feint();
+            } else
+            {
+                animator.SetInteger("AnimState", 1);
+                right = true;
+            }
         }
         if (Input.GetKeyUp(RIGHT))
         {
@@ -60,7 +81,13 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(DOWN))
         {
-            down = true;
+            if(attacking)
+            {
+                Parry();
+            } else
+            {
+                down = true;
+            }
         }
         if (Input.GetKeyUp(DOWN))
         {
@@ -84,27 +111,14 @@ public class PlayerController : MonoBehaviour
 
         if (left)
         {
-            if(attacking)
-            {
-                Slice();
-            } else
-            {
-                MoveLeft();
-            }
+            MoveLeft();
         }
         if (right)
         {
-            if(attacking)
-            {
-                Feint();
-            } else
-            {
-                MoveRight();
-            }
+            MoveRight();
         }
         if(down)
         {
-            Parry();
         }
         if (Physics2D.Raycast(transform.position, -transform.up, boxCollider.bounds.extents.y+GROUNDEDOFFSET, 1 << LayerMask.NameToLayer("Stage")))
         {
@@ -126,27 +140,27 @@ public class PlayerController : MonoBehaviour
 
     void MoveLeft()
     {
-        rb.AddForce(-transform.right * SPEED);
+        rb.velocity = new Vector2(-SPEED, rb.velocity.y);
     }
 
     void MoveRight()
     {
-        rb.AddForce(transform.right * SPEED);
+        rb.velocity = new Vector2(SPEED, rb.velocity.y);
     }
 
     void Slice()
     {
-        GameManager.instance.AddPlayerAttack(new CombatBean(CombatBean.Attacks.slice, MouseWorldPoint(), this.transform.position, GetComponent<AttackMoves>()));
+        GameManager.instance.AddPlayerAttack(new CombatBean(CombatBean.Attacks.slice, HelperScripts.Clone(MouseWorldPoint()), HelperScripts.Clone(this.transform.position), GetComponent<AttackMoves>()));
     }
 
     void Feint()
     {
-
+        GameManager.instance.AddPlayerAttack(new CombatBean(CombatBean.Attacks.feint, HelperScripts.Clone(MouseWorldPoint()), HelperScripts.Clone(this.transform.position), GetComponent<AttackMoves>()));
     }
 
     void Parry()
     {
-
+        GameManager.instance.AddPlayerAttack(new CombatBean(CombatBean.Attacks.parry, HelperScripts.Clone(MouseWorldPoint()), HelperScripts.Clone(this.transform.position), GetComponent<AttackMoves>()));
     }
 
     public void ToggleAttacking()
@@ -156,6 +170,7 @@ public class PlayerController : MonoBehaviour
 
     public Vector2 MouseWorldPoint()
     {
+        Debug.Log(Camera.main.ScreenToWorldPoint(Input.mousePosition));
         return Camera.main.ScreenToWorldPoint(Input.mousePosition);
     }
 }

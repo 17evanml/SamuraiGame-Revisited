@@ -41,10 +41,14 @@ public class CombatBean
     {
         if(other == null)
         {
+            Debug.Log("No player attack detected");
             return AttackList[(int)Attack](null);
         }
         if ((this.Position - other.PlayerPosition).magnitude > 1f)
         {
+            Debug.Log("Cursor Position:" + this.position);
+            Debug.Log("Target Position:" + other.playerPosition);
+            Debug.Log("Position Failed");
             Fail();
         }
         if((other.Position - this.PlayerPosition).magnitude > 1f)

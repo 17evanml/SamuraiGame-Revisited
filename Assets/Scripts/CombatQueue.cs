@@ -22,6 +22,7 @@ public class CombatQueue
     {
         if (playerAttackCount > 0 && enemyAttackCount > 0)
         {
+            Debug.Log("Remaining Items: " + playerAttackCount);
             playerAttackCount--;
             enemyAttackCount--;
             return playerAttacks.Dequeue().Battle(enemyAttacks.Dequeue());
@@ -33,6 +34,7 @@ public class CombatQueue
         }
         else if (playerAttackCount > 0)
         {
+            Debug.Log("Burning Excess Player Attacks");
             playerAttacks.Dequeue();
             playerAttackCount--;
             return -2;
@@ -78,5 +80,13 @@ public class CombatQueue
         {
             return false;
         }
+    }
+
+    public void Clear()
+    {
+        playerAttacks.Clear();
+        enemyAttacks.Clear();
+        playerAttackCount = 0;
+        enemyAttackCount = 0;
     }
 }
